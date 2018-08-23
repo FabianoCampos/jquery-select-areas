@@ -30,8 +30,14 @@
 	height: 16px;
 	width: 16px;
 }
-.delete-area {
+.delete-area, .crop-area {
 	position: absolute;
 	cursor: pointer;
 	padding: 5px;
+}
+.select-areas-crop-area {
+    background: url('bt-crop.png');
+	cursor: pointer;
+	height: 16px;
+	width: 16px;
 }

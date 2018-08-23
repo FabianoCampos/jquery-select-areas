@@ -4,8 +4,8 @@
  * @author Catalin Dogaru (https://github.com/cdog - http://code.tutsplus.com/tutorials/how-to-create-a-jquery-image-cropping-plugin-from-scratch-part-i--net-20994)
  * @author Adrien David-Sivelle (https://github.com/AdrienDS - Refactoring, Multiselections & Mobile compatibility)
  */
-(function($) {
-    $.imageArea = function(parent, id) {
+(function ($) {
+    $.imageArea = function (parent, id) {
         var options = parent.options,
             $image = parent.$image,
             $trigger = parent.$trigger,
@@ -13,6 +13,7 @@
             $selection,
             $resizeHandlers = {},
             $btDelete,
+            $btCrop,
             resizeHorizontally = true,
             resizeVertically = true,
             selectionOffset = [0, 0],
@@ -47,7 +48,7 @@
                 event.stopPropagation && event.stopPropagation(); // jshint ignore: line
                 event.preventDefault && event.preventDefault(); // jshint ignore: line
             },
-            off = function() {
+            off = function () {
                 $.each(arguments, function (key, val) {
                     on(val);
                 });
@@ -89,21 +90,22 @@
 
                 // Update the selection layer
                 $selection.css({
-                    backgroundPosition : ( - area.x - 1) + "px " + ( - area.y - 1) + "px",
-                    cursor : options.allowMove ? "move" : "default",
+                    backgroundPosition: (-area.x - 1) + "px " + (-area.y - 1) + "px",
+                    backgroundSize: $image.width() + "px " + $image.height() + "px",
+                    cursor: options.allowMove ? "move" : "default",
                     width: (area.width - 2 > 0) ? (area.width - 2) : 0,
                     height: (area.height - 2 > 0) ? (area.height - 2) : 0,
-                    left : area.x + 1,
-                    top : area.y + 1,
+                    left: area.x + 1,
+                    top: area.y + 1,
                     "z-index": area.z + 2
                 });
             },
             updateResizeHandlers = function (show) {
-                if (! options.allowResize) {
+                if (!options.allowResize) {
                     return;
                 }
                 if (show) {
-                    $.each($resizeHandlers, function(name, $handler) {
+                    $.each($resizeHandlers, function (name, $handler) {
                         var top,
                             left,
                             semiwidth = Math.round($handler.width() / 2),
@@ -112,7 +114,7 @@
                             horizontal = name[name.length - 1];
 
                         if (vertical === "n") {             // ====== North* ======
-                            top = - semiheight;
+                            top = -semiheight;
 
                         } else if (vertical === "s") {      // ====== South* ======
                             top = area.height - semiheight - 1;
@@ -125,7 +127,7 @@
                             left = area.width - semiwidth - 1;
 
                         } else if (horizontal === "w") {    // ====== *West ======
-                            left = - semiwidth;
+                            left = -semiwidth;
 
                         } else {                            // == North & South ==
                             left = Math.round(area.width / 2) - semiwidth - 1;
@@ -139,7 +141,7 @@
                         });
                     });
                 } else {
-                    $(".select-areas-resize-handler").each(function() {
+                    $(".select-areas-resize-handler").each(function () {
                         $(this).css({ display: "none" });
                     });
                 }
@@ -154,6 +156,17 @@
                     });
                 }
             },
+            updatebtCrop = function (visible) {
+                if ($btCrop) {
+                    var leftCrop = $btDelete ? area.x + area.width - 17 : area.x + area.width + 1;
+                     $btCrop.css({
+                         display: visible ? "block" : "none",
+                         left: leftCrop,
+                         top: area.y - $btCrop.outerHeight() - 1,
+                         "z-index": area.z + 1
+                     });
+                 }
+             },
             updateCursor = function (cursorType) {
                 $outline.css({
                     cursor: cursorType
@@ -163,13 +176,14 @@
                     cursor: cursorType
                 });
             },
-            refresh = function(sender) {
+            refresh = function (sender) {
                 switch (sender) {
                     case "startSelection":
                         parent._refresh();
                         updateSelection();
                         updateResizeHandlers();
                         updateBtDelete(true);
+                        updatebtCrop(true);
                         break;
 
                     case "pickSelection":
@@ -182,6 +196,7 @@
                         updateResizeHandlers();
                         updateCursor("crosshair");
                         updateBtDelete(true);
+                        updatebtCrop(true);
                         break;
 
                     case "moveSelection":
@@ -189,22 +204,25 @@
                         updateResizeHandlers();
                         updateCursor("move");
                         updateBtDelete(true);
+                        updatebtCrop(true);
                         break;
 
                     case "blur":
                         updateSelection();
                         updateResizeHandlers();
                         updateBtDelete();
+                        updatebtCrop();
                         break;
 
-                    //case "releaseSelection":
+                        //case "releaseSelection":
                     default:
                         updateSelection();
                         updateResizeHandlers(true);
                         updateBtDelete(true);
+                        updatebtCrop(true);
                 }
             },
-            startSelection  = function (event) {
+            startSelection = function (event) {
                 cancelEvent(event);
 
                 // Reset the selection size
@@ -278,26 +296,26 @@
 
                 // If the selection size is smaller than the minimum size set it to minimum size
                 if (Math.abs(width) < options.minSize[0]) {
-                    width = (width >= 0) ? options.minSize[0] : - options.minSize[0];
+                    width = (width >= 0) ? options.minSize[0] : -options.minSize[0];
                 }
                 if (Math.abs(height) < options.minSize[1]) {
-                    height = (height >= 0) ? options.minSize[1] : - options.minSize[1];
+                    height = (height >= 0) ? options.minSize[1] : -options.minSize[1];
                 }
                 // Test if the selection size exceeds the image bounds
                 if (selectionOrigin[0] + width < 0 || selectionOrigin[0] + width > $image.width()) {
-                    width = - width;
+                    width = -width;
                 }
                 if (selectionOrigin[1] + height < 0 || selectionOrigin[1] + height > $image.height()) {
-                    height = - height;
+                    height = -height;
                 }
                 // Test if the selection size is bigger than the maximum size (ignored if minSize > maxSize)
                 if (options.maxSize[0] > options.minSize[0] && options.maxSize[1] > options.minSize[1]) {
                     if (Math.abs(width) > options.maxSize[0]) {
-                        width = (width >= 0) ? options.maxSize[0] : - options.maxSize[0];
+                        width = (width >= 0) ? options.maxSize[0] : -options.maxSize[0];
                     }
 
                     if (Math.abs(height) > options.maxSize[1]) {
-                        height = (height >= 0) ? options.maxSize[1] : - options.maxSize[1];
+                        height = (height >= 0) ? options.maxSize[1] : -options.maxSize[1];
                     }
                 }
 
@@ -319,25 +337,25 @@
                         }
                     } else {
                         if (resizeHorizontally) {
-                            height = - Math.round(width / options.aspectRatio);
+                            height = -Math.round(width / options.aspectRatio);
                         } else {
-                            width = - Math.round(height * options.aspectRatio);
+                            width = -Math.round(height * options.aspectRatio);
                         }
                     }
                     // Test if the new size exceeds the image bounds
                     if (selectionOrigin[0] + width > $image.width()) {
                         width = $image.width() - selectionOrigin[0];
-                        height = (height > 0) ? Math.round(width / options.aspectRatio) : - Math.round(width / options.aspectRatio);
+                        height = (height > 0) ? Math.round(width / options.aspectRatio) : -Math.round(width / options.aspectRatio);
                     }
 
                     if (selectionOrigin[1] + height < 0) {
-                        height = - selectionOrigin[1];
-                        width = (width > 0) ? - Math.round(height * options.aspectRatio) : Math.round(height * options.aspectRatio);
+                        height = -selectionOrigin[1];
+                        width = (width > 0) ? -Math.round(height * options.aspectRatio) : Math.round(height * options.aspectRatio);
                     }
 
                     if (selectionOrigin[1] + height > $image.height()) {
                         height = $image.height() - selectionOrigin[1];
-                        width = (width > 0) ? Math.round(height * options.aspectRatio) : - Math.round(height * options.aspectRatio);
+                        width = (width > 0) ? Math.round(height * options.aspectRatio) : -Math.round(height * options.aspectRatio);
                     }
 
                     // Set the selection size
@@ -363,7 +381,7 @@
             },
             moveSelection = function (event) {
                 cancelEvent(event);
-                if (! options.allowMove) {
+                if (!options.allowMove) {
                     return;
                 }
                 focus();
@@ -421,14 +439,21 @@
                 cancelEvent(event);
                 $selection.remove();
                 $outline.remove();
-                $.each($resizeHandlers, function(card, $handler) {
+                $.each($resizeHandlers, function (card, $handler) {
                     $handler.remove();
                 });
                 if ($btDelete) {
-                    $btDelete.remove();    
-                } 
+                    $btDelete.remove();
+                }
+                if ($btCrop) {
+                    $btCrop.remove();
+                }
                 parent._remove(id);
-                fireEvent("changed");
+                fireEvent("deleted");
+            },
+            cropSelection = function (event) {
+                cancelEvent(event);
+                fireEvent("cropped");
             },
             getElementOffset = function (object) {
                 var offset = $(object).offset();
@@ -443,11 +468,11 @@
                         event = event.originalEvent;
                     }
 
-                    if(event.changedTouches) {
+                    if (event.changedTouches) {
                         event = event.changedTouches[0];
                     }
 
-                    if(event.touches) {
+                    if (event.touches) {
                         event = event.touches[0];
                     }
                 }
@@ -464,8 +489,8 @@
         // Initialize an outline layer and place it above the trigger layer
         $outline = $("<div class=\"select-areas-outline\" />")
             .css({
-                opacity : options.outlineOpacity,
-                position : "absolute"
+                opacity: options.outlineOpacity,
+                position: "absolute"
             })
             .insertAfter($trigger);
 
@@ -473,20 +498,20 @@
         $selection = $("<div />")
             .addClass("select-areas-background-area")
             .css({
-                background : "#fff url(" + $image.attr("src") + ") no-repeat",
-                backgroundSize : $image.width() + "px " + $image.height() + "px",
-                position : "absolute"
+                background: "#fff url(" + $image.attr("src") + ") no-repeat",
+                backgroundSize: $image.width() + "px " + $image.height() + "px",
+                position: "absolute"
             })
             .insertAfter($outline);
 
         // Initialize all handlers
         if (options.allowResize) {
             $.each(["nw", "n", "ne", "e", "se", "s", "sw", "w"], function (key, card) {
-                $resizeHandlers[card] =  $("<div class=\"select-areas-resize-handler " + card + "\"/>")
+                $resizeHandlers[card] = $("<div class=\"select-areas-resize-handler " + card + "\"/>")
                     .css({
-                        opacity : 0.5,
-                        position : "absolute",
-                        cursor : card + "-resize"
+                        opacity: 0.5,
+                        position: "absolute",
+                        cursor: card + "-resize"
                     })
                     .insertAfter($selection)
                     .mousedown(pickResizeHandler)
@@ -505,6 +530,15 @@
                 .append(bindToDelete($("<div class=\"select-areas-delete-area\" />")))
                 .insertAfter($selection);
         }
+        if (options.allowCrop) {
+            var bindToCrop = function ($objBtnCrop) {
+                $objBtnCrop.click(cropSelection);
+                return $objBtnCrop;
+            };
+            $btCrop = bindToCrop($("<div class=\"crop-area\" />"))
+                .append($("<div class=\"select-areas-crop-area\" />"))
+                .insertAfter($selection);
+        }
 
         if (options.allowMove) {
             $selection.mousedown(pickSelection).bind("touchstart", pickSelection);
@@ -516,6 +550,7 @@
             getData: getData,
             startSelection: startSelection,
             deleteSelection: deleteSelection,
+            cropSelection: cropSelection,
             options: options,
             blur: blur,
             focus: focus,
@@ -541,7 +576,7 @@
                 area = $.extend(area, dimensions);
                 selectionOrigin[0] = area.x;
                 selectionOrigin[1] = area.y;
-                if (! silent) {
+                if (!silent) {
                     fireEvent("changed");
                 }
             },
@@ -553,7 +588,7 @@
     };
 
 
-    $.imageSelectAreas = function() { };
+    $.imageSelectAreas = function () { };
 
     $.imageSelectAreas.prototype.init = function (object, customOptions) {
         var that = this,
@@ -563,6 +598,7 @@
                 allowResize: true,
                 allowSelect: true,
                 allowDelete: true,
+                allowCrop: true,
                 allowNudge: true,
                 aspectRatio: 0,
                 minSize: [0, 0],
@@ -573,12 +609,14 @@
                 overlayOpacity: 0.5,
                 areas: [],
                 onChanging: null,
-                onChanged: null
+                onDeleted: null,
+                onChanged: null,
+                onCrop: null
             };
 
         this.options = $.extend(defaultOptions, customOptions);
 
-        if (! this.options.allowEdit) {
+        if (!this.options.allowEdit) {
             this.options.allowSelect = this.options.allowMove = this.options.allowResize = this.options.allowDelete = false;
         }
 
@@ -599,14 +637,21 @@
         if (this.options.onChanged) {
             this.$image.on("changed", this.options.onChanged);
         }
+        if (this.options.onDeleted) {
+            this.$image.on("deleted", this.options.onDeleted);
+        }
         if (this.options.onLoaded) {
             this.$image.on("loaded", this.options.onLoaded);
         }
+        if (this.options.onCrop) {
+            this.$image.on("cropped", this.options.onCrop);
+        }
+        
 
         // Initialize an image holder
-        this.$holder = $("<div />")
+        this.$holder = $("<div class=\"select-areas-holder-wrap-image\"/>")
             .css({
-                position : "relative",
+                position: "relative",
                 width: this.$image.width(),
                 height: this.$image.height()
             });
@@ -614,14 +659,14 @@
         // Wrap the holder around the image
         this.$image.wrap(this.$holder)
             .css({
-                position : "absolute"
+                position: "absolute"
             });
 
         // Initialize an overlay layer and place it above the image
         this.$overlay = $("<div class=\"select-areas-overlay\" />")
             .css({
-                opacity : this.options.overlayOpacity,
-                position : "absolute",
+                opacity: this.options.overlayOpacity,
+                position: "absolute",
                 width: this.$image.width(),
                 height: this.$image.height()
             })
@@ -630,9 +675,9 @@
         // Initialize a trigger layer and place it above the overlay layer
         this.$trigger = $("<div />")
             .css({
-                backgroundColor : "#000000",
-                opacity : 0,
-                position : "absolute",
+                backgroundColor: "#000000",
+                opacity: 0,
+                position: "absolute",
                 width: this.$image.width(),
                 height: this.$image.height()
             })
@@ -653,11 +698,11 @@
         if (this.options.allowNudge) {
             $('html').keydown(function (e) { // move selection with arrow keys
                 var codes = {
-                        37: "l",
-                        38: "u",
-                        39: "r",
-                        40: "d"
-                    },
+                    37: "l",
+                    38: "u",
+                    39: "r",
+                    40: "d"
+                },
                     direction = codes[e.which],
                     selectedArea;
 
@@ -681,7 +726,7 @@
     $.imageSelectAreas.prototype._refresh = function () {
         var nbAreas = this.areas().length;
         this.$overlay.css({
-            display : nbAreas? "block" : "none"
+            display: nbAreas ? "block" : "none"
         });
         if (nbAreas) {
             this.$image.addClass("blurred");
@@ -689,8 +734,32 @@
             this.$image.removeClass("blurred");
         }
         this.$trigger.css({
-            cursor : this.options.allowSelect ? "crosshair" : "default"
+            cursor: this.options.allowSelect ? "crosshair" : "default"
         });
+    };
+
+    $.imageSelectAreas.prototype.updateWidth = function (width) {
+        var ratio = width / this.$image.width();
+        this.$image.width(width);
+        this.$overlay.css({ "width": width, "height": this.$image.height() });
+        this.$trigger.css({ "width": width, "height": this.$image.height() });
+        this.$holder.css({ "width": width, "height": this.$image.height() });
+
+        var that = this;
+        var scale = function (val) {
+            return val * ratio;
+        };
+        this._eachArea(function (area, id) {
+            var dimensoes = $.extend({}, area.getData());
+            dimensoes.x = scale(dimensoes.x);
+            dimensoes.y = scale(dimensoes.y);
+            dimensoes.width = scale(dimensoes.width);
+            dimensoes.height = scale(dimensoes.height);
+            area.set(dimensoes, true);
+            area.blur();
+        });
+
+        this.ratio = width / this.$image[0].naturalWidth;
     };
 
     $.imageSelectAreas.prototype._eachArea = function (cb) {
@@ -715,7 +784,7 @@
     $.imageSelectAreas.prototype.newArea = function (event) {
         var id = -1;
         this.blurAll();
-        if (this.options.maxAreas && this.options.maxAreas <=  this.areas().length) {
+        if (this.options.maxAreas && this.options.maxAreas <= this.areas().length) {
             return id;
         }
         this._eachArea(function (area, index) {
@@ -754,7 +823,7 @@
             this._add(options);
         }
         this._refresh();
-        if (! this.options.allowSelect && ! this.options.allowMove && ! this.options.allowResize && ! this.options.allowDelete) {
+        if (!this.options.allowSelect && !this.options.allowMove && !this.options.allowResize && !this.options.allowDelete) {
             this.blurAll();
         }
     };
@@ -774,7 +843,7 @@
         this.$trigger.remove();
         this.$image.css("width", "").css("position", "").unwrap();
         this.$image.removeData("mainImageSelectAreas");
-        this.$image.off('changing changed loaded');
+        this.$image.off('changing changed loaded deleted cropped');
     };
 
     $.imageSelectAreas.prototype.areas = function () {
@@ -809,7 +878,7 @@
         });
     };
 
-    $.imageSelectAreas.prototype.contains  = function (point) {
+    $.imageSelectAreas.prototype.contains = function (point) {
         var res = false;
         this._eachArea(function (area) {
             if (area.contains(point)) {
@@ -820,9 +889,9 @@
         return res;
     };
 
-    $.selectAreas = function(object, options) {
+    $.selectAreas = function (object, options) {
         var $object = $(object);
-        if (! $object.data("mainImageSelectAreas")) {
+        if (!$object.data("mainImageSelectAreas")) {
             var mainImageSelectAreas = new $.imageSelectAreas();
             mainImageSelectAreas.init(object, options);
             $object.data("mainImageSelectAreas", mainImageSelectAreas);
@@ -832,19 +901,19 @@
     };
 
 
-    $.fn.selectAreas = function(customOptions) {
-        if ( $.imageSelectAreas.prototype[customOptions] ) { // Method call
-            var ret = $.imageSelectAreas.prototype[ customOptions ].apply( $.selectAreas(this), Array.prototype.slice.call( arguments, 1 ));
+    $.fn.selectAreas = function (customOptions) {
+        if ($.imageSelectAreas.prototype[customOptions]) { // Method call
+            var ret = $.imageSelectAreas.prototype[customOptions].apply($.selectAreas(this), Array.prototype.slice.call(arguments, 1));
             return typeof ret === "undefined" ? this : ret;
 
-        } else if ( typeof customOptions === "object" || ! customOptions ) { // Initialization
+        } else if (typeof customOptions === "object" || !customOptions) { // Initialization
             //Iterate over each object
-            this.each(function() {
+            this.each(function () {
                 var currentObject = this,
                     image = new Image();
 
                 // And attach selectAreas when the object is loaded
-                image.onload = function() {
+                image.onload = function () {
                     $.selectAreas(currentObject, customOptions);
                 };
 
@@ -855,7 +924,7 @@
             return this;
 
         } else {
-            $.error( "Method " +  customOptions + " does not exist on jQuery.selectAreas" );
+            $.error("Method " + customOptions + " does not exist on jQuery.selectAreas");
         }
     };
-}) (jQuery);
+})(jQuery);

@@ -9,10 +9,9 @@ It is used by:
 
 ![jQuery-select-areas Preview](https://rawgit.com/360Learning/jquery-select-areas/master/jQuerySelectAreas-Preview.png)
 
-# Project continuation
+# Project creation
 
-We (360Learning) no longer have the time to maintain this project, so the issue tracker has been closed. If someone wants to get admin access to this repository to fix the few bugs that are reported, we would gladly agree. Else, there already are some forks of this project, so don't hesitate to use them if they have fixed a bug that is bother you.
-Best regards
+Created by [360learning](https://360learning.com), GitHub: [jquery-select-areas](https://github.com/360Learning/jquery-select-areas)
 
 # Quick Start
 
@@ -22,7 +21,9 @@ Best regards
       minSize: [30, 30],    // Minimum size of a selection
       maxSize: [400, 300],  // Maximum size of a selection
       onChanged: $.noop,    // fired when a selection is released
-      onChanging: $.noop    // fired during the modification of a selection
+      onChanging: $.noop,   // fired during the modification of a selection
+	  onDeleted: $.noop,    // fired when the selection is deleted
+      onCrop: $.noop        // fired when the image is cropped
     });
 
 
@@ -69,22 +70,26 @@ Here is a list of available options for selectAreas, with their *default value*:
  - **onChanging** (*null*) : triggered when the event "changing" is fired
  - **onChanged** (*null*) : triggered when the event "changed" is fired
  - **onLoaded** (*null*) : triggered when the event "loaded" is fired
+ - **onDeleted** (*null*) : triggered when the event "deleted" is fired
+ - **onCrop** (*null*) : triggered when the event "cropped" is fired
  - **width** (*0*) : When not 0, scale the image to this width (px). The coordinates of the areas on the full image can be retrieved with method relativeAreas()
 
 ## Events
 Three events are fired by the plugin:
- - **loaded** : fired when plugin is loaded
- - **changing** : fired during the modification of a selection. arguments : (event, id, areas)
- - **changed**  : fired when a selection is released. arguments : (event, id, areas)
-
+ - **loaded**   : fired when plugin is loaded
+ - **changing** : fired during the modification of a selection. Arguments : (event, id, areas)
+ - **changed**  : fired when a selection is released. Arguments : (event, id, areas)
+ - **deleted**  : fired when a selection is deleted.  Arguments : (event, id, areas)
+ - **cropped**  : fired when a selection is cropped.  Arguments : (event, id, areas)
 ## Methods
 Once you added a *selectAreas* plugin on an image, several method are exposed to help you
 manipulate and retrieve these areas:
- - **areas ()** : returns an array of areas
- - **relativeAreas ()** : returns an array of areas, with their size and coordinates on the original image (see option width). Equal to areas() when the image is displayed in full size.
- - **add (options)** : add an area
- - **remove (id)** : remove an area with its id
- - **reset ()** : remove all areas
- - **destroy ()** : remove the *selectAreas* plugin
- - **blurAll ()** : blur (unfocus) all the areas
- - **contains (point)** : return true or false whether or not a point ({x: X, y: Y}) is included in at least one area
+ - **areas ()**            : returns an array of areas
+ - **relativeAreas ()**    : returns an array of areas, with their size and coordinates on the original image (see option width). Equal to areas() when the image is displayed in full size.
+ - **add (options)**       : add an area
+ - **remove (id)**         : remove an area with its id
+ - **reset ()**            : remove all areas
+ - **destroy ()**          : remove the *selectAreas* plugin
+ - **blurAll ()**          : blur (unfocus) all the areas
+ - **contains (point)**    : return true or false whether or not a point ({x: X, y: Y}) is included in at least one area
+ - **updateWidth (width)** : refreshes the width of the image by recalculating the mapped areas. Useful for zooming in on the image. Return the original size of the areas using the relativeAreas method. 
